@@ -1,12 +1,50 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import asyncStoreMethods from '@/async-store/methods';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
 
 
 export default function Index() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const validateUser = async () => {
+      try {
+        const isFirstTimeUser = await asyncStoreMethods.getData('isFirstTimeUser', 'string');
+        console.log('FirstTimeUser:', isFirstTimeUser);
+        if (isFirstTimeUser !== null && Number(isFirstTimeUser) === 1) {
+          router.replace('/home'); 
+        } else {
+          setLoading(false); 
+        }
+      } catch (error) {
+        console.error(error);
+        setLoading(false); 
+      }
+    };
+
+    validateUser();
+  }, []);
+
+  if (loading) {
+    return (
+      <View className="flex-1 justify-center items-center bg-white">
+        <ActivityIndicator size="large" color="#FF3B30" />
+      </View>
+    );
+  }
+
+  const setFirstTimeUser = async () => {
+  await asyncStoreMethods.storeData('1', 'isFirstTimeUser');
+  router.push('/home');
+};
+
+
 
   return (
     <LinearGradient
@@ -40,7 +78,7 @@ export default function Index() {
 
       <View className="w-full mt-8">
         <TouchableOpacity
-          onPress={() => router.push('/home')}
+          onPress={setFirstTimeUser}
           className="bg-white rounded-full py-4 flex-row items-center justify-center"
           style={{ shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 5 }}
         >
